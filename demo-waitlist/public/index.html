@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Launchpad — Join the waitlist</title>
+  <meta name="description" content="Launchpad is opening soon. Join the waitlist for early access." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page">
+    <main class="layout">
+      <section class="panel panel--main" aria-labelledby="headline">
+        <h1 id="headline">Launchpad</h1>
+        <p class="pitch">Get early access before we open the doors. We're building a faster way to ship side projects — signups go live in waves, and the waitlist decides who's first.</p>
+
+        <form id="signup-form" class="signup-form" novalidate>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+              aria-describedby="email-error"
+            />
+            <p id="email-error" class="field-error" role="alert" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="name">Name <span class="optional">(optional)</span></label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              autocomplete="name"
+              placeholder="Ada Lovelace"
+            />
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn">
+            <span class="btn-label">Join the waitlist</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="panel panel--counter" aria-labelledby="counter-heading">
+        <div class="live-indicator">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span class="live-label">LIVE</span>
+        </div>
+        <h2 id="counter-heading">On the waitlist</h2>
+        <p class="counter" id="counter-value" aria-live="polite">&mdash;</p>
+        <p class="counter-caption">people waiting for access</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Launchpad is a demo project. No spam, no data resale — just a place in line.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
