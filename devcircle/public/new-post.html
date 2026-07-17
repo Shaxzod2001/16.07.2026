@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yangi post yozish — DevCircle</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="site-nav" aria-label="Asosiy navigatsiya">
+    <a class="site-logo" href="index.html">DevCircle</a>
+    <div class="nav-auth" id="auth-area" aria-live="polite"></div>
+  </nav>
+</header>
+
+<main class="page">
+  <h1 class="page-title" style="margin-bottom: 20px;">Yangi post yozish</h1>
+
+  <form class="form form-wide" id="new-post-form" novalidate>
+    <p class="form-error" id="form-error" hidden></p>
+
+    <div class="form-field">
+      <label for="title">Sarlavha</label>
+      <input type="text" id="title" name="title" required aria-describedby="title-error">
+      <p class="field-error" id="title-error" hidden></p>
+    </div>
+
+    <div class="form-field">
+      <label for="body">Matn</label>
+      <textarea id="body" name="body" rows="12" required aria-describedby="body-error"></textarea>
+      <p class="field-error" id="body-error" hidden></p>
+    </div>
+
+    <button type="submit" class="btn" id="submit-btn">Nashr qilish</button>
+  </form>
+</main>
+
+<script src="api.js"></script>
+<script src="new-post.js"></script>
+</body>
+</html>

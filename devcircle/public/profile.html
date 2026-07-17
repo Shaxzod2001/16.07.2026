@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil — DevCircle</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="site-nav" aria-label="Asosiy navigatsiya">
+    <a class="site-logo" href="index.html">DevCircle</a>
+    <div class="nav-auth" id="auth-area" aria-live="polite"></div>
+  </nav>
+</header>
+
+<main class="page">
+  <div id="profile-status" class="state-message" role="status">Profil yuklanmoqda...</div>
+
+  <div id="profile-content" hidden>
+    <div class="profile-header">
+      <h1 class="profile-username" id="profile-username"></h1>
+      <p class="profile-meta" id="profile-meta"></p>
+    </div>
+
+    <h2 class="page-title" style="font-size: 16px; margin-bottom: 12px;">Postlar</h2>
+    <div id="profile-posts-status" class="state-message" hidden></div>
+    <ul class="feed-list" id="profile-posts-list"></ul>
+  </div>
+</main>
+
+<script src="api.js"></script>
+<script src="profile.js"></script>
+</body>
+</html>

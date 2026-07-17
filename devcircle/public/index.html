@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevCircle — dasturchilar hamjamiyati</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="site-nav" aria-label="Asosiy navigatsiya">
+    <a class="site-logo" href="index.html">DevCircle</a>
+    <div class="nav-auth" id="auth-area" aria-live="polite"></div>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-header-row">
+    <h1 class="page-title">So'nggi postlar</h1>
+    <a class="btn" href="new-post.html" id="new-post-btn" hidden>Yangi post</a>
+  </div>
+
+  <div id="feed-status" class="state-message" role="status">Postlar yuklanmoqda...</div>
+
+  <ul class="feed-list" id="feed-list" hidden></ul>
+</main>
+
+<script src="api.js"></script>
+<script src="index.js"></script>
+</body>
+</html>

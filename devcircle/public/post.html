@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post — DevCircle</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="site-nav" aria-label="Asosiy navigatsiya">
+    <a class="site-logo" href="index.html">DevCircle</a>
+    <div class="nav-auth" id="auth-area" aria-live="polite"></div>
+  </nav>
+</header>
+
+<main class="page">
+  <div id="post-status" class="state-message" role="status">Post yuklanmoqda...</div>
+
+  <article class="column" id="post-article" hidden>
+    <h1 class="post-detail-title" id="post-title"></h1>
+    <p class="post-detail-meta" id="post-meta"></p>
+    <div class="post-body" id="post-body"></div>
+  </article>
+
+  <section class="comments-section" id="comments-section" hidden aria-labelledby="comments-heading">
+    <h2 class="comments-heading" id="comments-heading">Izohlar</h2>
+
+    <div id="comments-status" class="state-message"></div>
+    <ul class="comment-list" id="comment-list"></ul>
+
+    <form class="comment-form" id="comment-form" hidden novalidate>
+      <div class="form-field">
+        <label for="comment-body">Izoh yozing...</label>
+        <textarea id="comment-body" name="body" required aria-describedby="comment-body-error"></textarea>
+        <p class="field-error" id="comment-body-error" hidden></p>
+      </div>
+      <p class="form-error" id="comment-form-error" hidden></p>
+      <button type="submit" class="btn" id="comment-submit">Izoh qoldirish</button>
+    </form>
+
+    <p class="login-prompt" id="login-prompt" hidden>
+      <a href="login.html">Izoh qoldirish uchun tizimga kiring</a>
+    </p>
+  </section>
+</main>
+
+<script src="api.js"></script>
+<script src="post.js"></script>
+</body>
+</html>
