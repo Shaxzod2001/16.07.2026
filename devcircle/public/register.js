@@ -48,8 +48,8 @@ form.addEventListener("submit", async (e) => {
     passwordError.textContent = "Parol kiriting.";
     passwordError.hidden = false;
     hasError = true;
-  } else if (password.length < 6) {
-    passwordError.textContent = "Parol kamida 6 ta belgidan iborat bo'lishi kerak.";
+  } else if (password.length < 8) {
+    passwordError.textContent = "Parol kamida 8 ta belgidan iborat bo'lishi kerak.";
     passwordError.hidden = false;
     hasError = true;
   }
