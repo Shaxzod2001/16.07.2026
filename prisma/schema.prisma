@@ -1,0 +1,123 @@
+// Profi.uz — Prisma schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CLIENT
+  SPECIALIST
+}
+
+enum OrderStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String   @unique
+  email        String?  @unique
+  passwordHash String
+  role         Role
+  city         String
+  createdAt    DateTime @default(now())
+
+  specialistProfile SpecialistProfile?
+  orders            Order[]         @relation("ClientOrders")
+  responses         OrderResponse[] @relation("SpecialistResponses")
+  reviewsWritten    Review[]        @relation("ClientReviews")
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+  icon String
+
+  specialists SpecialistCategory[]
+  orders      Order[]
+}
+
+model SpecialistProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String
+  experienceYears Int      @default(0)
+  ratingAvg       Float    @default(0)
+  ratingCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  categories SpecialistCategory[]
+  reviews    Review[]
+}
+
+model SpecialistCategory {
+  specialistProfileId String
+  specialistProfile   SpecialistProfile @relation(fields: [specialistProfileId], references: [id], onDelete: Cascade)
+  categoryId          String
+  category            Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([specialistProfileId, categoryId])
+}
+
+model Order {
+  id                 String      @id @default(cuid())
+  clientId           String
+  client             User        @relation("ClientOrders", fields: [clientId], references: [id], onDelete: Cascade)
+  categoryId         String
+  category           Category    @relation(fields: [categoryId], references: [id])
+  title              String
+  description        String
+  city               String
+  budgetMin          Int?
+  budgetMax          Int?
+  status             OrderStatus @default(OPEN)
+  acceptedResponseId String?     @unique
+  createdAt          DateTime    @default(now())
+
+  responses OrderResponse[]
+  review    Review?
+}
+
+model OrderResponse {
+  id           String         @id @default(cuid())
+  orderId      String
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  specialistId String
+  specialist   User           @relation("SpecialistResponses", fields: [specialistId], references: [id], onDelete: Cascade)
+  message      String
+  price        Int
+  status       ResponseStatus @default(PENDING)
+  createdAt    DateTime       @default(now())
+
+  @@unique([orderId, specialistId])
+}
+
+model Review {
+  id                  String            @id @default(cuid())
+  orderId             String            @unique
+  order               Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  clientId            String
+  client              User              @relation("ClientReviews", fields: [clientId], references: [id], onDelete: Cascade)
+  specialistProfileId String
+  specialistProfile   SpecialistProfile @relation(fields: [specialistProfileId], references: [id], onDelete: Cascade)
+  rating              Int
+  comment             String
+  createdAt           DateTime          @default(now())
+}
