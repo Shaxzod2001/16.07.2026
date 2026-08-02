@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Контроль обеда</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#10131a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Обед">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root{
+    --bg:#10131a;
+    --panel:#171c26;
+    --panel-2:#1e2531;
+    --border:#2a3244;
+    --text:#e9edf4;
+    --text-dim:#8992a6;
+    --text-faint:#5a6478;
+    --free:#34d399;
+    --free-dim:#1a3a30;
+    --warn:#f5a623;
+    --warn-dim:#3d3018;
+    --full:#fb7185;
+    --full-dim:#3d2027;
+    --mono:'IBM Plex Mono',monospace;
+    --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, #1b2130 0%, transparent 60%),
+      radial-gradient(ellipse 900px 500px at 100% 110%, #191f2c 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 60px;}
+
+  /* ---------- shared bits ---------- */
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--text-faint); display:flex; align-items:center; gap:8px; margin-bottom:6px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--free);box-shadow:0 0 8px var(--free);}
+  h1{font-size:26px; font-weight:800; letter-spacing:-.01em;}
+  .sub{color:var(--text-dim); font-size:14px; margin-top:4px;}
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px;
+  }
+  .btn{
+    font-family:var(--sans); font-weight:700; font-size:14px; letter-spacing:.01em;
+    padding:13px 20px; border-radius:10px; border:1px solid transparent; cursor:pointer;
+    transition:transform .08s ease, opacity .15s ease; width:100%;
+  }
+  .btn:active{transform:scale(.985);}
+  .btn-primary{background:var(--free); color:#08150f;}
+  .btn-primary:disabled{background:#334; color:var(--text-faint); cursor:not-allowed;}
+  .btn-ghost{background:transparent; border-color:var(--border); color:var(--text-dim);}
+  .btn-danger{background:var(--full-dim); color:var(--full); border:1px solid #4a2530;}
+  input{
+    width:100%; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    font-family:var(--sans); font-size:15px; padding:12px 14px; border-radius:9px; outline:none;
+    transition:border-color .15s ease;
+  }
+  input:focus{border-color:var(--free);}
+  label{font-size:12px; color:var(--text-dim); font-weight:600; display:block; margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  .foot-link{
+    text-align:center; margin-top:22px; font-size:12px; color:var(--text-faint);
+    text-decoration:none; display:block; letter-spacing:.02em;
+  }
+  .foot-link:hover{color:var(--text-dim);}
+
+  /* ---------- slot strip ---------- */
+  .slots{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:18px 0 24px;}
+  .slot{
+    aspect-ratio:1/1; border-radius:10px; border:1.5px dashed var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  }
+  .slot.busy{
+    border-style:solid; background:var(--warn-dim); border-color:#5a441f; color:var(--warn);
+    flex-direction:column; gap:2px; font-weight:600;
+  }
+  .slot.busy.low{background:var(--full-dim); border-color:#5a2530; color:var(--full);}
+  .slot .name{font-size:10px; font-family:var(--sans); font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:90%;}
+  .slot .t{font-size:13px;}
+
+  /* ---------- worker form ---------- */
+  .stage{max-width:420px; margin:40px auto 0;}
+  .status-line{
+    display:flex; justify-content:space-between; align-items:center; font-family:var(--mono);
+    font-size:12px; color:var(--text-dim); margin-bottom:14px; padding:0 2px;
+  }
+  .status-line b{color:var(--text);}
+
+  .confirm{
+    text-align:center;
+  }
+  .confirm .big-timer{
+    font-family:var(--mono); font-size:56px; font-weight:700; letter-spacing:-.02em;
+    color:var(--free); margin:18px 0 6px; font-variant-numeric:tabular-nums;
+  }
+  .confirm .big-timer.low{color:var(--warn);}
+  .confirm .big-timer.crit{color:var(--full);}
+  .confirm .until{color:var(--text-dim); font-size:13px; margin-bottom:20px;}
+  .confirm .who{font-size:16px; font-weight:700; margin-bottom:2px;}
+  .confirm .who-phone{font-size:13px; color:var(--text-faint); font-family:var(--mono);}
+
+  .full-msg{text-align:center; padding:10px 0;}
+  .full-msg .icon{font-size:32px; margin-bottom:10px;}
+  .full-msg h2{font-size:18px; margin-bottom:6px;}
+  .full-msg p{color:var(--text-dim); font-size:13px; line-height:1.5;}
+  .full-msg .eta{
+    font-family:var(--mono); font-size:28px; color:var(--warn); margin:14px 0; font-weight:700;
+  }
+
+  .err{
+    background:var(--full-dim); border:1px solid #5a2530; color:#ffb4c0; font-size:13px;
+    padding:10px 12px; border-radius:8px; margin-top:14px;
+  }
+
+  /* ---------- admin ---------- */
+  .pin-stage{max-width:340px; margin:80px auto 0; text-align:center;}
+  .pin-stage h1{margin-bottom:4px;}
+  .admin-top{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:22px;}
+  .stat{font-family:var(--mono); font-size:12px; color:var(--text-dim);}
+  .stat b{font-size:20px; color:var(--text); display:block; font-weight:700;}
+  .stat-row{display:flex; gap:26px;}
+
+  .grid2{display:grid; grid-template-columns:1.55fr 1fr; gap:16px; align-items:start;}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr;}}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; color:var(--text-faint); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:8px 10px; border-bottom:1px solid var(--border);}
+  td{padding:10px; border-bottom:1px solid #1f2531; vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .p-name{font-weight:700;}
+  .p-phone{color:var(--text-faint); font-family:var(--mono); font-size:12px;}
+  .bar-wrap{width:100%; height:5px; background:#0e1119; border-radius:3px; overflow:hidden; margin-top:5px;}
+  .bar{height:100%; background:var(--free); border-radius:3px; transition:width 1s linear;}
+  .bar.low{background:var(--warn);}
+  .bar.crit{background:var(--full);}
+  .remain{font-family:var(--mono); font-weight:700;}
+  .mini-btn{
+    font-family:var(--sans); font-size:11px; font-weight:700; padding:6px 10px; border-radius:6px;
+    background:transparent; border:1px solid var(--border); color:var(--text-dim); cursor:pointer;
+  }
+  .mini-btn:hover{border-color:var(--full); color:var(--full);}
+  .empty-row{text-align:center; color:var(--text-faint); padding:28px 0; font-size:13px;}
+
+  .qr-box{text-align:center;}
+  .qr-box #qr{display:inline-block; padding:12px; background:#fff; border-radius:10px; margin:12px 0;}
+  .qr-box p{color:var(--text-dim); font-size:12px; line-height:1.5;}
+
+  .settings-row{display:flex; gap:10px; margin-top:16px;}
+  .settings-row input{flex:1;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const NUM_SLOTS = 4;                       // bir vaqtda abetda bo'la oladigan odamlar soni
+const BREAK_MS  = 60 * 60 * 1000;          // har bir odamga beriladigan vaqt (60 daqiqa)
+const ADMIN_PIN   = 'darkstor';
+
+// TODO: Firebase Realtime Database'dan olingan sozlamalarni shu yerga qo'ying
+const firebaseConfig = {
+  apiKey: "AIzaSyARs6MKQO4TrLoj8fmRT16S7P9t3MYNPW0",
+  authDomain: "test-75976.firebaseapp.com",
+  databaseURL: "https://test-75976-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "test-75976",
+  storageBucket: "test-75976.firebasestorage.app",
+  messagingSenderId: "1063599321308",
+  appId: "1:1063599321308:web:e1fce9bf434497817c8419"
+};
+let db; // DOMContentLoaded'dan keyin sozlanadi
+
+let adminUnlocked = false; // только на время сессии, после перезагрузки пароль спросится снова
+
+/* ================= STORAGE HELPERS (Firebase Realtime Database) ================= */
+async function getActive(){
+  try{
+    const snap = await db.ref('active').once('value');
+    return snap.val() || [];
+  }catch(e){ console.error(e); return []; }
+}
+async function setActive(list){
+  try{ await db.ref('active').set(list); }catch(e){ console.error(e); }
+}
+async function pushHistory(entry){
+  try{
+    const snap = await db.ref('history').once('value');
+    let hist = snap.val() || [];
+    hist.unshift(entry);
+    if(hist.length > 400) hist = hist.slice(0,400);
+    await db.ref('history').set(hist);
+  }catch(e){ console.error(e); }
+}
+async function getHistory(){
+  try{
+    const snap = await db.ref('history').once('value');
+    return snap.val() || [];
+  }catch(e){ return []; }
+}
+/* reap expired breaks -> moves them into history, returns still-active list */
+async function reapExpired(){
+  const list = await getActive();
+  const now = Date.now();
+  const stillActive = [];
+  let changed = false;
+  for(const b of list){
+    if(b.end <= now){
+      changed = true;
+      await pushHistory({...b, actualEnd: b.end, endedBy:'время истекло'});
+    } else {
+      stillActive.push(b);
+    }
+  }
+  if(changed) await setActive(stillActive);
+  return stillActive;
+}
+
+/* ================= UTIL ================= */
+function fmtClock(ms){
+  const totalSec = Math.max(0, Math.floor(ms/1000));
+  const m = Math.floor(totalSec/60).toString().padStart(2,'0');
+  const s = (totalSec%60).toString().padStart(2,'0');
+  return m+':'+s;
+}
+function fmtHM(ts){
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function levelFor(remainMs){
+  const pct = remainMs / BREAK_MS;
+  if(pct <= 0.15) return 'crit';
+  if(pct <= 0.4) return 'low';
+  return '';
+}
+
+/* ================= RENDER: SLOT STRIP ================= */
+function renderSlots(active){
+  const now = Date.now();
+  let html = '<div class="slots">';
+  for(let i=0;i<NUM_SLOTS;i++){
+    const b = active[i];
+    if(b){
+      const remain = b.end - now;
+      const lvl = levelFor(remain);
+      html += `<div class="slot busy ${lvl==='crit'?'low':''}">
+        <div class="name">${escapeHtml(b.ism)}</div>
+        <div class="t">${fmtClock(remain)}</div>
+      </div>`;
+    } else {
+      html += `<div class="slot">свободно</div>`;
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ================= APP STATE / ROUTER ================= */
+const app = document.getElementById('app');
+let tickTimer = null;
+let pollTimer = null;
+
+function stopTimers(){
+  if(tickTimer){ clearInterval(tickTimer); tickTimer=null; }
+  if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+}
+
+window.addEventListener('hashchange', route);
+
+/* Skriptlarni o'zimiz, aniq vaqt chegarasi bilan yuklaymiz — aks holda
+   tarmoq so'rovi javobsiz osilib qolsa, sahifa abadiy bo'sh turib qoladi. */
+function loadScript(src, timeoutMs){
+  return new Promise((resolve) => {
+    let done = false;
+    const s = document.createElement('script');
+    s.src = src;
+    const timer = setTimeout(() => { if(!done){ done = true; resolve(false); } }, timeoutMs);
+    s.onload = () => { if(!done){ done = true; clearTimeout(timer); resolve(true); } };
+    s.onerror = () => { if(!done){ done = true; clearTimeout(timer); resolve(false); } };
+    document.head.appendChild(s);
+  });
+}
+
+function showLoadError(){
+  app.innerHTML = `
+    <div class="pin-stage">
+      <div class="eyebrow" style="justify-content:center"><span class="dot" style="background:var(--full);box-shadow:0 0 8px var(--full)"></span>ОШИБКА ПОДКЛЮЧЕНИЯ</div>
+      <h1>Не удалось загрузить сервис</h1>
+      <div class="card" style="margin-top:20px;">
+        <p style="color:var(--text-dim); font-size:13px; line-height:1.6;">
+          Не удалось подключиться к Google/Firebase-серверам. Обычно это связано с блокировкой этих сервисов в вашей сети.
+          Включите VPN или проверьте подключение и попробуйте снова.
+        </p>
+        <button class="btn btn-primary" style="margin-top:16px;" id="retryLoadBtn">Попробовать снова</button>
+      </div>
+    </div>`;
+  document.getElementById('retryLoadBtn').onclick = boot;
+}
+
+async function boot(){
+  app.innerHTML = `<div class="pin-stage"><div class="eyebrow" style="justify-content:center"><span class="dot"></span>ЗАГРУЗКА</div><h1>Подключение...</h1></div>`;
+
+  const qrOk = loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', 6000);
+  const appOk = await loadScript('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js', 6000);
+  const dbOk = appOk ? await loadScript('https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js', 6000) : false;
+  const qrLoaded = await qrOk;
+
+  if(!qrLoaded || !appOk || !dbOk){
+    showLoadError();
+    return;
+  }
+
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  route();
+}
+
+boot();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((e) => console.error('SW register failed', e));
+  });
+}
+
+function route(){
+  stopTimers();
+  if(location.hash === '#admin'){
+    renderAdminEntry();
+  } else {
+    renderWorker();
+  }
+}
+
+/* ================= WORKER VIEW ================= */
+async function renderWorker(){
+  app.innerHTML = `<div class="stage"><div id="workerRoot"></div></div>`;
+  await drawWorkerForm();
+}
+
+async function drawWorkerForm(prefill){
+  const root = document.getElementById('workerRoot');
+  const active = await reapExpired();
+  const free = NUM_SLOTS - active.length;
+
+  root.innerHTML = `
+    <div class="eyebrow"><span class="dot" style="background:${free>0?'var(--free)':'var(--full)'};box-shadow:0 0 8px ${free>0?'var(--free)':'var(--full)'}"></span>КОНТРОЛЬ ОБЕДА</div>
+    <h1>Уйти на обед</h1>
+    <div class="sub">Введите имя и номер телефона.</div>
+    <div class="status-line" style="margin-top:18px;">
+      <span>Свободно мест: <b>${free}</b> / ${NUM_SLOTS}</span>
+      <span>Каждому по <b>${BREAK_MS/60000} мин.</b></span>
+    </div>
+    ${renderSlots(active)}
+    <div class="card">
+      <label>Имя</label>
+      <input id="fIsm" placeholder="Имя" autocomplete="given-name" value="${prefill?escapeHtml(prefill.ism):''}">
+      <label>Фамилия</label>
+      <input id="fFam" placeholder="Фамилия" autocomplete="family-name" value="${prefill?escapeHtml(prefill.familya):''}">
+      <label>Номер телефона</label>
+      <input id="fTel" placeholder="+7 900 123-45-67" autocomplete="tel" value="${prefill?escapeHtml(prefill.phone):''}">
+      <div id="errBox"></div>
+      <button class="btn btn-primary" id="submitBtn" style="margin-top:18px;">Уйти на обед</button>
+    </div>
+    <a class="foot-link" href="#admin">Панель управления →</a>
+  `;
+
+  document.getElementById('submitBtn').onclick = onSubmitBreak;
+}
+
+async function onSubmitBreak(){
+  const ism = document.getElementById('fIsm').value.trim();
+  const familya = document.getElementById('fFam').value.trim();
+  const phone = document.getElementById('fTel').value.trim();
+  const errBox = document.getElementById('errBox');
+  errBox.innerHTML = '';
+
+  if(!ism || !familya || !phone){
+    errBox.innerHTML = `<div class="err">Пожалуйста, заполните все поля.</div>`;
+    return;
+  }
+  if(phone.replace(/\D/g,'').length < 10){
+    errBox.innerHTML = `<div class="err">Введите корректный номер телефона.</div>`;
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Отправка...';
+
+  const active = await reapExpired();
+  const normPhone = phone.replace(/\D/g,'');
+
+  // allaqachon abetda bo'lsa
+  const existing = active.find(b => b.phone.replace(/\D/g,'') === normPhone);
+  if(existing){
+    showConfirm(existing);
+    return;
+  }
+
+  if(active.length >= NUM_SLOTS){
+    showFull(active);
+    return;
+  }
+
+  const entry = {
+    id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    ism, familya, phone,
+    start: Date.now(),
+    end: Date.now() + BREAK_MS
+  };
+  const updated = [...active, entry];
+  await setActive(updated);
+  showConfirm(entry);
+}
+
+function showFull(active){
+  const soonest = active.reduce((min,b) => b.end < min ? b.end : min, Infinity);
+  const root = document.getElementById('workerRoot');
+  root.innerHTML = `
+    <div class="eyebrow"><span class="dot" style="background:var(--full);box-shadow:0 0 8px var(--full)"></span>КОНТРОЛЬ ОБЕДА</div>
+    <div class="card full-msg">
+      <div class="icon">⏳</div>
+      <h2>Сейчас все места заняты</h2>
+      <p>Одновременно на обеде может быть не больше ${NUM_SLOTS} человек.<br>Ближайшее свободное место через:</p>
+      <div class="eta" id="etaTimer">--:--</div>
+      <button class="btn btn-ghost" id="retryBtn">Попробовать снова</button>
+    </div>
+    <a class="foot-link" href="#admin">Панель управления →</a>
+  `;
+  document.getElementById('retryBtn').onclick = () => drawWorkerForm();
+  tickTimer = setInterval(() => {
+    const remain = soonest - Date.now();
+    const el = document.getElementById('etaTimer');
+    if(!el){ clearInterval(tickTimer); return; }
+    if(remain <= 0){
+      clearInterval(tickTimer);
+      drawWorkerForm();
+      return;
+    }
+    el.textContent = fmtClock(remain);
+  }, 1000);
+}
+
+function showConfirm(entry){
+  const root = document.getElementById('workerRoot');
+  root.innerHTML = `
+    <div class="eyebrow"><span class="dot" style="background:var(--free);box-shadow:0 0 8px var(--free)"></span>ВЫ НА ОБЕДЕ</div>
+    <div class="card confirm">
+      <div class="who">${escapeHtml(entry.ism)} ${escapeHtml(entry.familya)}</div>
+      <div class="who-phone">${escapeHtml(entry.phone)}</div>
+      <div class="big-timer" id="confirmTimer">--:--</div>
+      <div class="until">Вернуться до: <b style="color:var(--text)">${fmtHM(entry.end)}</b></div>
+      <button class="btn btn-ghost" id="newBtn">Для другого человека</button>
+    </div>
+    <a class="foot-link" href="#admin">Панель управления →</a>
+  `;
+  document.getElementById('newBtn').onclick = () => drawWorkerForm();
+
+  const timerEl = document.getElementById('confirmTimer');
+  const tick = () => {
+    const remain = entry.end - Date.now();
+    if(!document.getElementById('confirmTimer')){ clearInterval(tickTimer); return; }
+    if(remain <= 0){
+      timerEl.textContent = "00:00";
+      timerEl.className = 'big-timer crit';
+      clearInterval(tickTimer);
+      return;
+    }
+    timerEl.textContent = fmtClock(remain);
+    const lvl = levelFor(remain);
+    timerEl.className = 'big-timer' + (lvl ? ' '+lvl : '');
+  };
+  tick();
+  tickTimer = setInterval(tick, 1000);
+}
+
+/* ================= ADMIN: PIN GATE ================= */
+async function renderAdminEntry(){
+  if(adminUnlocked){ return renderAdminDashboard(); }
+
+  app.innerHTML = `
+    <div class="pin-stage">
+      <div class="eyebrow" style="justify-content:center"><span class="dot"></span>АДМИН</div>
+      <h1>Введите пароль</h1>
+      <div class="card" style="margin-top:20px; text-align:left;">
+        <input id="pinInput" type="password" placeholder="••••••••" style="margin-top:0;">
+        <div id="pinErr"></div>
+        <button class="btn btn-primary" id="checkPinBtn" style="margin-top:16px;">Войти</button>
+      </div>
+      <a class="foot-link" href="#">← Назад на страницу сотрудника</a>
+    </div>`;
+  const check = async () => {
+    const val = document.getElementById('pinInput').value.trim();
+    if(val === ADMIN_PIN){
+      adminUnlocked = true;
+      renderAdminDashboard();
+    } else {
+      document.getElementById('pinErr').innerHTML = `<div class="err">Неверный пароль.</div>`;
+    }
+  };
+  document.getElementById('checkPinBtn').onclick = check;
+  document.getElementById('pinInput').addEventListener('keydown', e => { if(e.key==='Enter') check(); });
+}
+
+/* ================= ADMIN: DASHBOARD ================= */
+async function renderAdminDashboard(){
+  const workerUrl = location.origin + location.pathname;
+
+  app.innerHTML = `
+    <div id="adminRoot">
+      <div class="admin-top">
+        <div>
+          <div class="eyebrow"><span class="dot"></span>ПАНЕЛЬ УПРАВЛЕНИЯ</div>
+          <h1>Мониторинг обеда</h1>
+        </div>
+        <div class="stat-row">
+          <div class="stat">Занято сейчас<b id="statNow">-- / ${NUM_SLOTS}</b></div>
+          <div class="stat">Всего сегодня<b id="statToday">--</b></div>
+        </div>
+      </div>
+
+      <div id="slotsArea"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <table>
+            <thead><tr><th>Имя Фамилия</th><th>Начало</th><th>Осталось времени</th><th></th></tr></thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+
+        <div class="card qr-box">
+          <div class="eyebrow" style="justify-content:center">ССЫЛКА ДЛЯ СОТРУДНИКОВ</div>
+          <div id="qr"></div>
+          <p>Распечатайте этот QR-код и повесьте у места отдыха — сотрудники будут сканировать его, чтобы уйти на обед.</p>
+          <div class="settings-row">
+            <button class="btn btn-ghost" id="lockBtn">Выйти</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // QR отрисовывается один раз — панель больше не стирает его при обновлении
+  new QRCode(document.getElementById('qr'), {
+    text: workerUrl, width: 168, height: 168,
+    colorDark: '#10131a', colorLight: '#ffffff'
+  });
+
+  document.getElementById('lockBtn').onclick = () => {
+    adminUnlocked = false;
+    location.hash = '';
+  };
+
+  await updateAdminData();
+  pollTimer = setInterval(updateAdminData, 2000);
+}
+
+async function updateAdminData(){
+  const slotsArea = document.getElementById('slotsArea');
+  if(!slotsArea) return; // foydalanuvchi boshqa ekranga o'tgan bo'lsa, to'xtatamiz
+
+  const active = await reapExpired();
+  const history = await getHistory();
+  const now = Date.now();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = history.filter(h => h.actualEnd >= today.getTime()).length + active.length;
+
+  slotsArea.innerHTML = renderSlots(active);
+  document.getElementById('statNow').textContent = `${active.length} / ${NUM_SLOTS}`;
+  document.getElementById('statToday').textContent = todayCount;
+
+  const tblBody = document.getElementById('tblBody');
+  tblBody.innerHTML = active.length === 0
+    ? `<tr><td colspan="4"><div class="empty-row">Пока никто не на обеде</div></td></tr>`
+    : active.map(b => {
+        const remain = b.end - now;
+        const lvl = levelFor(remain);
+        const pct = Math.max(0, Math.min(100, (remain/BREAK_MS)*100));
+        return `<tr>
+          <td><div class="p-name">${escapeHtml(b.ism)} ${escapeHtml(b.familya)}</div><div class="p-phone">${escapeHtml(b.phone)}</div></td>
+          <td class="p-phone">${fmtHM(b.start)}</td>
+          <td>
+            <span class="remain ${lvl}">${fmtClock(remain)}</span>
+            <div class="bar-wrap"><div class="bar ${lvl}" style="width:${pct}%"></div></div>
+          </td>
+          <td><button class="mini-btn" data-id="${b.id}">Завершить</button></td>
+        </tr>`;
+      }).join('');
+
+  tblBody.querySelectorAll('.mini-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute('data-id');
+      const cur = await getActive();
+      const target = cur.find(b => b.id === id);
+      const rest = cur.filter(b => b.id !== id);
+      await setActive(rest);
+      if(target) await pushHistory({...target, actualEnd: Date.now(), endedBy:'завершено администратором'});
+      updateAdminData();
+    };
+  });
+}
+</script>
+</body>
+</html>
