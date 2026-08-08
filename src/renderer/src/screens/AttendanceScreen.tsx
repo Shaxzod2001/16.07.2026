@@ -10,7 +10,7 @@ interface ResultState {
 }
 
 export default function AttendanceScreen(): JSX.Element {
-  const { videoRef, error: cameraError } = useCamera()
+  const { videoRef, error: cameraError, ready: cameraReady } = useCamera()
   const [modelsReady, setModelsReady] = useState(false)
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<ResultState | null>(null)
@@ -20,7 +20,7 @@ export default function AttendanceScreen(): JSX.Element {
   }, [])
 
   async function handlePunch(type: AttendanceType): Promise<void> {
-    if (!videoRef.current || !modelsReady || busy) return
+    if (!videoRef.current || !modelsReady || !cameraReady || busy) return
     setBusy(true)
     setResult(null)
     try {
@@ -45,6 +45,11 @@ export default function AttendanceScreen(): JSX.Element {
         kind: 'success',
         message: `${match.employee.name}: ${label} qayd qilindi (${now})`
       })
+    } catch (err) {
+      setResult({
+        kind: 'error',
+        message: `Xatolik yuz berdi: ${err instanceof Error ? err.message : "noma'lum xato"}`
+      })
     } finally {
       setBusy(false)
     }
@@ -55,15 +60,16 @@ export default function AttendanceScreen(): JSX.Element {
       <h2>Davomat</h2>
       <video ref={videoRef} autoPlay muted playsInline className="camera-preview large" />
       {cameraError && <p className="error">Kamera xatosi: {cameraError}</p>}
+      {!cameraError && !cameraReady && <p className="status">Kamera ulanmoqda...</p>}
       {!modelsReady && <p>Yuz-tanish modeli yuklanmoqda...</p>}
 
       <div className="punch-actions">
-        <button disabled={!modelsReady || busy} onClick={() => handlePunch('in')}>
+        <button disabled={!modelsReady || !cameraReady || busy} onClick={() => handlePunch('in')}>
           Kirish
         </button>
         <button
           className="secondary"
-          disabled={!modelsReady || busy}
+          disabled={!modelsReady || !cameraReady || busy}
           onClick={() => handlePunch('out')}
         >
           Chiqish

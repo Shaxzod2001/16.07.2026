@@ -39,6 +39,9 @@ export async function loadFaceModels(): Promise<void> {
 export async function detectFaceDescriptor(
   input: HTMLVideoElement
 ): Promise<Float32Array | null> {
+  if (input.videoWidth === 0 || input.videoHeight === 0) {
+    throw new Error('Kamera tasviri hali tayyor emas, birozdan keyin qayta urinib ko\'ring')
+  }
   const result = await faceapi
     .detectSingleFace(input, new faceapi.TinyFaceDetectorOptions())
     .withFaceLandmarks()
