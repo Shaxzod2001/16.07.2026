@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Employee } from '../../../shared/types'
 import { useCamera } from '../hooks/useCamera'
 import { api } from '../lib/api'
+import { useLanguage } from '../lib/i18n'
 import { detectFaceDescriptor, findBestMatch, loadFaceModels } from '../lib/face'
 
 const SCAN_INTERVAL_MS = 1800
@@ -14,6 +15,7 @@ interface ResultState {
 }
 
 export default function AttendanceScreen(): JSX.Element {
+  const { t } = useLanguage()
   const { videoRef, error: cameraError, ready: cameraReady } = useCamera()
   const [modelsReady, setModelsReady] = useState(false)
   const [scanning, setScanning] = useState(true)
@@ -83,7 +85,7 @@ export default function AttendanceScreen(): JSX.Element {
       const time = log.timestamp.slice(11, 16)
       setResult({
         kind: 'success',
-        message: `Xush kelibsiz, ${match.employee.name}! Kirish muvaffaqiyatli qayd qilindi (${time})`
+        message: t('welcomeCheckin', { name: match.employee.name, time })
       })
       pauseWithCooldown()
     } catch {
@@ -103,7 +105,7 @@ export default function AttendanceScreen(): JSX.Element {
         const time = log.timestamp.slice(11, 16)
         setResult({
           kind: 'success',
-          message: `Xayr, ${confirmEmployee.name}! Chiqish muvaffaqiyatli qayd qilindi (${time})`
+          message: t('farewellCheckout', { name: confirmEmployee.name, time })
         })
       } else {
         setResult(null)
@@ -117,16 +119,14 @@ export default function AttendanceScreen(): JSX.Element {
 
   return (
     <div className="screen attendance-screen">
-      <h2>Davomat</h2>
+      <h2>{t('tabAttendance')}</h2>
       <video ref={videoRef} autoPlay muted playsInline className="camera-preview large" />
-      {cameraError && <p className="error">Kamera xatosi: {cameraError}</p>}
-      {!cameraError && !cameraReady && <p className="status">Kamera ulanmoqda...</p>}
-      {!modelsReady && <p>Yuz-tanish modeli yuklanmoqda...</p>}
+      {cameraError && <p className="error">{t('cameraError', { error: cameraError })}</p>}
+      {!cameraError && !cameraReady && <p className="status">{t('cameraConnecting')}</p>}
+      {!modelsReady && <p>{t('modelsLoading')}</p>}
 
       {modelsReady && cameraReady && !confirmEmployee && !result && (
-        <p className="status">
-          {scanning ? 'Yuzingizni kameraga tuting — avtomatik tanilasiz...' : 'Kuting...'}
-        </p>
+        <p className="status">{scanning ? t('scanningPrompt') : t('waiting')}</p>
       )}
 
       {result && <p className={result.kind === 'success' ? 'success' : 'error'}>{result.message}</p>}
@@ -134,19 +134,17 @@ export default function AttendanceScreen(): JSX.Element {
       {confirmEmployee && (
         <div className="modal-backdrop">
           <div className="modal confirm-modal">
-            <p>
-              <strong>{confirmEmployee.name}</strong>, siz hozir ishdasiz. Chiqishni tasdiqlaysizmi?
-            </p>
+            <p>{t('confirmCheckoutQuestion', { name: confirmEmployee.name })}</p>
             <div className="punch-actions">
               <button disabled={confirmBusy} onClick={() => confirmCheckout(true)}>
-                Ha, chiqaman
+                {t('yesCheckout')}
               </button>
               <button
                 className="secondary"
                 disabled={confirmBusy}
                 onClick={() => confirmCheckout(false)}
               >
-                Yo'q, orqaga
+                {t('noBack')}
               </button>
             </div>
           </div>

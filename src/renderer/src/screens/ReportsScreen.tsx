@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { AttendanceLog, Employee } from '../../../shared/types'
 import { api } from '../lib/api'
 import { exportToExcel } from '../lib/exportExcel'
+import { useLanguage } from '../lib/i18n'
 import {
   computeDailySummary,
   computeLateArrivals,
@@ -22,6 +23,7 @@ function fmtHours(h: number): string {
 }
 
 export default function ReportsScreen(): JSX.Element {
+  const { t } = useLanguage()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [workStartTime, setWorkStartTime] = useState('09:00')
   const [savingSettings, setSavingSettings] = useState(false)
@@ -63,65 +65,71 @@ export default function ReportsScreen(): JSX.Element {
   return (
     <div className="screen reports-screen">
       <div className="screen-header">
-        <h2>Hisobotlar</h2>
+        <h2>{t('reportsTitle')}</h2>
         <div className="work-start-setting">
-          <label>Ish boshlanish vaqti:</label>
+          <label>{t('workStartTime')}</label>
           <input
             type="time"
             value={workStartTime}
             onChange={(e) => setWorkStartTime(e.target.value)}
           />
           <button onClick={saveWorkStartTime} disabled={savingSettings}>
-            Saqlash
+            {t('save')}
           </button>
         </div>
       </div>
 
       <section className="report-section">
         <div className="report-section-header">
-          <h3>Kunlik xulosa</h3>
+          <h3>{t('dailySummary')}</h3>
           <input type="date" value={dailyDate} onChange={(e) => setDailyDate(e.target.value)} />
           <button
             onClick={() =>
               exportToExcel(`davomat_${dailyDate}.xlsx`, [
                 {
-                  name: 'Kunlik',
+                  name: t('excelSheetDaily'),
                   rows: dailyRows.map((r) => ({
-                    Ism: r.employee.name,
-                    Holati: r.present ? 'Keldi' : 'Kelmadi',
-                    'Kelgan vaqti': r.firstIn ? r.firstIn.slice(11, 16) : '',
-                    'Ketgan vaqti': r.stillIn ? 'Hali ishda' : r.lastOut ? r.lastOut.slice(11, 16) : '',
-                    'Ish soati': Number(fmtHours(r.hoursWorked)),
-                    Kechikish: r.late ? `${r.lateMinutes} daqiqa` : ''
+                    [t('colName')]: r.employee.name,
+                    [t('colStatus')]: r.present ? t('present') : t('absent'),
+                    [t('colArrival')]: r.firstIn ? r.firstIn.slice(11, 16) : '',
+                    [t('colDeparture')]: r.stillIn
+                      ? t('stillAtWork')
+                      : r.lastOut
+                        ? r.lastOut.slice(11, 16)
+                        : '',
+                    [t('colWorkHours')]: Number(fmtHours(r.hoursWorked)),
+                    [t('colLate')]: r.late ? `${r.lateMinutes} ${t('minutesFull')}` : ''
                   }))
                 }
               ])
             }
           >
-            Excel'ga yuklash
+            {t('exportExcel')}
           </button>
         </div>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Ism</th>
-                <th>Holati</th>
-                <th>Kelgan vaqti</th>
-                <th>Ketgan vaqti</th>
-                <th>Ish soati</th>
-                <th>Kechikish</th>
+                <th>{t('colName')}</th>
+                <th>{t('colStatus')}</th>
+                <th>{t('colArrival')}</th>
+                <th>{t('colDeparture')}</th>
+                <th>{t('colWorkHours')}</th>
+                <th>{t('colLate')}</th>
               </tr>
             </thead>
             <tbody>
               {dailyRows.map((r) => (
                 <tr key={r.employee.id}>
                   <td>{r.employee.name}</td>
-                  <td>{r.present ? 'Keldi' : 'Kelmadi'}</td>
+                  <td>{r.present ? t('present') : t('absent')}</td>
                   <td>{r.firstIn ? r.firstIn.slice(11, 16) : '—'}</td>
-                  <td>{r.stillIn ? 'Hali ishda' : r.lastOut ? r.lastOut.slice(11, 16) : '—'}</td>
+                  <td>{r.stillIn ? t('stillAtWork') : r.lastOut ? r.lastOut.slice(11, 16) : '—'}</td>
                   <td>{r.present ? fmtHours(r.hoursWorked) : '—'}</td>
-                  <td className={r.late ? 'error' : ''}>{r.late ? `${r.lateMinutes} daq.` : '—'}</td>
+                  <td className={r.late ? 'error' : ''}>
+                    {r.late ? `${r.lateMinutes} ${t('minutesShort')}` : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -131,7 +139,7 @@ export default function ReportsScreen(): JSX.Element {
 
       <section className="report-section">
         <div className="report-section-header">
-          <h3>Davr bo'yicha jadval</h3>
+          <h3>{t('periodTable')}</h3>
           <input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} />
           <span>—</span>
           <input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
@@ -139,28 +147,28 @@ export default function ReportsScreen(): JSX.Element {
             onClick={() =>
               exportToExcel(`davr_${periodStart}_${periodEnd}.xlsx`, [
                 {
-                  name: 'Davr',
+                  name: t('excelSheetPeriod'),
                   rows: periodRows.map((r) => ({
-                    Ism: r.employee.name,
-                    'Kelgan kunlar': r.daysPresent,
-                    'Umumiy soat': Number(fmtHours(r.totalHours)),
-                    'Kechikkan kunlar': r.lateDays
+                    [t('colName')]: r.employee.name,
+                    [t('colDaysPresent')]: r.daysPresent,
+                    [t('colTotalHours')]: Number(fmtHours(r.totalHours)),
+                    [t('colLateDays')]: r.lateDays
                   }))
                 }
               ])
             }
           >
-            Excel'ga yuklash
+            {t('exportExcel')}
           </button>
         </div>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Ism</th>
-                <th>Kelgan kunlar</th>
-                <th>Umumiy soat</th>
-                <th>Kechikkan kunlar</th>
+                <th>{t('colName')}</th>
+                <th>{t('colDaysPresent')}</th>
+                <th>{t('colTotalHours')}</th>
+                <th>{t('colLateDays')}</th>
               </tr>
             </thead>
             <tbody>
@@ -179,7 +187,7 @@ export default function ReportsScreen(): JSX.Element {
 
       <section className="report-section">
         <div className="report-section-header">
-          <h3>Kechikkanlar ro'yxati</h3>
+          <h3>{t('lateArrivalsList')}</h3>
           <span className="status">
             ({periodStart} — {periodEnd})
           </span>
@@ -187,31 +195,31 @@ export default function ReportsScreen(): JSX.Element {
             onClick={() =>
               exportToExcel(`kechikkanlar_${periodStart}_${periodEnd}.xlsx`, [
                 {
-                  name: 'Kechikkanlar',
+                  name: t('excelSheetLate'),
                   rows: lateRows.map((r) => ({
-                    Ism: r.employeeName,
-                    Sana: r.date,
-                    'Kelgan vaqti': r.arrivalTime,
-                    'Kechikish (daqiqa)': r.lateMinutes
+                    [t('colName')]: r.employeeName,
+                    [t('colDate')]: r.date,
+                    [t('colArrival')]: r.arrivalTime,
+                    [t('excelColLateMinutes')]: r.lateMinutes
                   }))
                 }
               ])
             }
           >
-            Excel'ga yuklash
+            {t('exportExcel')}
           </button>
         </div>
         {lateRows.length === 0 ? (
-          <p className="empty">Bu davrda kechikishlar yo'q.</p>
+          <p className="empty">{t('noLateArrivals')}</p>
         ) : (
           <div className="table-scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Ism</th>
-                  <th>Sana</th>
-                  <th>Kelgan vaqti</th>
-                  <th>Kechikish</th>
+                  <th>{t('colName')}</th>
+                  <th>{t('colDate')}</th>
+                  <th>{t('colArrival')}</th>
+                  <th>{t('colLate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,7 +228,9 @@ export default function ReportsScreen(): JSX.Element {
                     <td>{r.employeeName}</td>
                     <td>{r.date}</td>
                     <td>{r.arrivalTime}</td>
-                    <td className="error">{r.lateMinutes} daq.</td>
+                    <td className="error">
+                      {r.lateMinutes} {t('minutesShort')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
