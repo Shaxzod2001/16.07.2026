@@ -203,3 +203,47 @@ td {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* Reports screen */
+.reports-screen .screen-header {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.work-start-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.work-start-setting input {
+  width: auto;
+}
+
+.report-section {
+  margin-top: 28px;
+  overflow-x: auto;
+}
+
+.report-section:first-of-type {
+  margin-top: 0;
+}
+
+.report-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.report-section-header h3 {
+  margin: 0;
+  margin-right: 8px;
+}
+
+.report-section-header input {
+  width: auto;
+}

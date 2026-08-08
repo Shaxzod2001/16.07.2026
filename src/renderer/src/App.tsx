@@ -2,13 +2,15 @@ import { useState } from 'react'
 import AttendanceScreen from './screens/AttendanceScreen'
 import EmployeesScreen from './screens/EmployeesScreen'
 import LogScreen from './screens/LogScreen'
+import ReportsScreen from './screens/ReportsScreen'
 
-type Tab = 'attendance' | 'employees' | 'log'
+type Tab = 'attendance' | 'employees' | 'log' | 'reports'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'attendance', label: 'Davomat' },
   { id: 'employees', label: 'Xodimlar' },
-  { id: 'log', label: 'Jurnal' }
+  { id: 'log', label: 'Jurnal' },
+  { id: 'reports', label: 'Hisobotlar' }
 ]
 
 export default function App(): JSX.Element {
@@ -35,6 +37,7 @@ export default function App(): JSX.Element {
         {tab === 'attendance' && <AttendanceScreen />}
         {tab === 'employees' && <EmployeesScreen />}
         {tab === 'log' && <LogScreen />}
+        {tab === 'reports' && <ReportsScreen />}
       </main>
     </div>
   )

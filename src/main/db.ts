@@ -1,7 +1,11 @@
 import Database, { type Database as DatabaseType } from 'better-sqlite3'
 import { app } from 'electron'
 import { join } from 'path'
-import type { AttendanceLog, AttendanceType, Employee, NewEmployee } from '../shared/types'
+import type { AttendanceLog, AttendanceType, Employee, NewEmployee, Settings } from '../shared/types'
+
+const DEFAULT_SETTINGS: Settings = {
+  workStartTime: '09:00'
+}
 
 const dbPath = join(app.getPath('userData'), 'attendance.db')
 export const db: DatabaseType = new Database(dbPath)
@@ -22,6 +26,11 @@ db.exec(`
     employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK(type IN ('in','out')),
     timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
   );
 `)
 
@@ -68,4 +77,34 @@ export function listAttendance(limit = 200): AttendanceLog[] {
        ORDER BY a.id DESC LIMIT ?`
     )
     .all(limit) as AttendanceLog[]
+}
+
+export function listAttendanceInRange(startDate: string, endDate: string): AttendanceLog[] {
+  return db
+    .prepare(
+      `SELECT a.id, a.employee_id, e.name as employee_name, a.type, a.timestamp
+       FROM attendance_logs a JOIN employees e ON e.id = a.employee_id
+       WHERE date(a.timestamp) >= date(?) AND date(a.timestamp) <= date(?)
+       ORDER BY a.timestamp ASC`
+    )
+    .all(startDate, endDate) as AttendanceLog[]
+}
+
+export function getSettings(): Settings {
+  const rows = db.prepare('SELECT key, value FROM settings').all() as {
+    key: string
+    value: string
+  }[]
+  const stored = Object.fromEntries(rows.map((r) => [r.key, r.value]))
+  return { ...DEFAULT_SETTINGS, ...stored }
+}
+
+export function updateSettings(partial: Partial<Settings>): Settings {
+  const upsert = db.prepare(
+    'INSERT INTO settings (key, value) VALUES (@key, @value) ON CONFLICT(key) DO UPDATE SET value = @value'
+  )
+  for (const [key, value] of Object.entries(partial)) {
+    if (value !== undefined) upsert.run({ key, value: String(value) })
+  }
+  return getSettings()
 }

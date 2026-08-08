@@ -3,12 +3,15 @@ import { join } from 'path'
 import {
   createEmployee,
   deleteEmployee,
+  getSettings,
   lastAttendanceType,
   listAttendance,
+  listAttendanceInRange,
   listEmployees,
-  recordAttendance
+  recordAttendance,
+  updateSettings
 } from './db'
-import type { AttendanceType, NewEmployee } from '../shared/types'
+import type { AttendanceType, NewEmployee, Settings } from '../shared/types'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -44,10 +47,16 @@ app.whenReady().then(() => {
   ipcMain.handle('employees:delete', (_e, id: number) => deleteEmployee(id))
 
   ipcMain.handle('attendance:list', (_e, limit: number) => listAttendance(limit))
+  ipcMain.handle('attendance:listRange', (_e, startDate: string, endDate: string) =>
+    listAttendanceInRange(startDate, endDate)
+  )
   ipcMain.handle('attendance:lastType', (_e, employeeId: number) => lastAttendanceType(employeeId))
   ipcMain.handle('attendance:record', (_e, employeeId: number, type: AttendanceType) =>
     recordAttendance(employeeId, type)
   )
+
+  ipcMain.handle('settings:get', () => getSettings())
+  ipcMain.handle('settings:update', (_e, partial: Partial<Settings>) => updateSettings(partial))
 
   createWindow()
 

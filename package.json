@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@vladmandic/face-api": "^1.7.15",
-    "better-sqlite3": "^11.9.1"
+    "better-sqlite3": "^11.9.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
