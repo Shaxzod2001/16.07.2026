@@ -27,11 +27,18 @@ export interface MatchResult {
   distance: number
 }
 
+export interface Settings {
+  workStartTime: string
+}
+
 export interface AttendanceApi {
   listEmployees(): Promise<Employee[]>
   createEmployee(data: NewEmployee): Promise<Employee>
   deleteEmployee(id: number): Promise<void>
   listAttendance(limit?: number): Promise<AttendanceLog[]>
+  listAttendanceInRange(startDate: string, endDate: string): Promise<AttendanceLog[]>
   lastAttendanceType(employeeId: number): Promise<AttendanceType | null>
   recordAttendance(employeeId: number, type: AttendanceType): Promise<AttendanceLog>
+  getSettings(): Promise<Settings>
+  updateSettings(settings: Partial<Settings>): Promise<Settings>
 }
