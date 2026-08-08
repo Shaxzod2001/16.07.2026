@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AttendanceLog, AttendanceType, Employee, NewEmployee } from '../shared/types'
+import type { AttendanceApi, AttendanceLog, AttendanceType, Employee, NewEmployee } from '../shared/types'
 
-const api = {
+const api: AttendanceApi = {
   listEmployees: (): Promise<Employee[]> => ipcRenderer.invoke('employees:list'),
   createEmployee: (data: NewEmployee): Promise<Employee> =>
     ipcRenderer.invoke('employees:create', data),
@@ -17,10 +17,8 @@ const api = {
 
 contextBridge.exposeInMainWorld('api', api)
 
-export type Api = typeof api
-
 declare global {
   interface Window {
-    api: Api
+    api?: AttendanceApi
   }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { AttendanceType } from '../../../shared/types'
 import { useCamera } from '../hooks/useCamera'
+import { api } from '../lib/api'
 import { detectFaceDescriptor, findBestMatch, loadFaceModels } from '../lib/face'
 
 interface ResultState {
@@ -28,7 +29,7 @@ export default function AttendanceScreen(): JSX.Element {
         setResult({ kind: 'error', message: "Yuz aniqlanmadi. Kameraga to'g'ri qarang." })
         return
       }
-      const employees = await window.api.listEmployees()
+      const employees = await api.listEmployees()
       const match = findBestMatch(descriptor, employees)
       if (!match) {
         setResult({
@@ -37,7 +38,7 @@ export default function AttendanceScreen(): JSX.Element {
         })
         return
       }
-      await window.api.recordAttendance(match.employee.id, type)
+      await api.recordAttendance(match.employee.id, type)
       const label = type === 'in' ? 'Kirish' : 'Chiqish'
       const now = new Date().toLocaleTimeString('uz-UZ')
       setResult({

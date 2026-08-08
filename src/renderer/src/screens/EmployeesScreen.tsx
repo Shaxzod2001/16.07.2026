@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Employee } from '../../../shared/types'
 import { useCamera } from '../hooks/useCamera'
+import { api } from '../lib/api'
 import { averageDescriptors, detectFaceDescriptor, loadFaceModels } from '../lib/face'
 
 const SHOTS_NEEDED = 3
@@ -17,7 +18,7 @@ export default function EmployeesScreen(): JSX.Element {
   const { videoRef, error: cameraError } = useCamera()
 
   async function refresh(): Promise<void> {
-    setEmployees(await window.api.listEmployees())
+    setEmployees(await api.listEmployees())
   }
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export default function EmployeesScreen(): JSX.Element {
         photo = canvas.toDataURL('image/jpeg', 0.7)
       }
       const descriptor = averageDescriptors(shots)
-      await window.api.createEmployee({ name: name.trim(), descriptor, photo })
+      await api.createEmployee({ name: name.trim(), descriptor, photo })
       closeForm()
       refresh()
     } finally {
@@ -81,7 +82,7 @@ export default function EmployeesScreen(): JSX.Element {
 
   async function handleDelete(id: number): Promise<void> {
     if (!confirm("Ushbu xodimni o'chirishni tasdiqlaysizmi?")) return
-    await window.api.deleteEmployee(id)
+    await api.deleteEmployee(id)
     refresh()
   }
 

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { AttendanceLog } from '../../../shared/types'
+import { api } from '../lib/api'
 
 export default function LogScreen(): JSX.Element {
   const [logs, setLogs] = useState<AttendanceLog[]>([])
 
   useEffect(() => {
-    window.api.listAttendance(300).then(setLogs)
+    api.listAttendance(300).then(setLogs)
   }, [])
 
   return (

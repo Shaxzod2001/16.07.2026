@@ -26,3 +26,12 @@ export interface MatchResult {
   employee: Employee
   distance: number
 }
+
+export interface AttendanceApi {
+  listEmployees(): Promise<Employee[]>
+  createEmployee(data: NewEmployee): Promise<Employee>
+  deleteEmployee(id: number): Promise<void>
+  listAttendance(limit?: number): Promise<AttendanceLog[]>
+  lastAttendanceType(employeeId: number): Promise<AttendanceType | null>
+  recordAttendance(employeeId: number, type: AttendanceType): Promise<AttendanceLog>
+}
