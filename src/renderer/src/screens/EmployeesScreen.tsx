@@ -15,7 +15,7 @@ export default function EmployeesScreen(): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [modelsReady, setModelsReady] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { videoRef, error: cameraError } = useCamera()
+  const { videoRef, error: cameraError, ready: cameraReady } = useCamera()
 
   async function refresh(): Promise<void> {
     setEmployees(await api.listEmployees())
@@ -42,7 +42,7 @@ export default function EmployeesScreen(): JSX.Element {
   }
 
   async function captureShot(): Promise<void> {
-    if (!videoRef.current || !modelsReady) return
+    if (!videoRef.current || !modelsReady || !cameraReady) return
     setBusy(true)
     setStatus('Yuz aniqlanmoqda...')
     try {
@@ -53,6 +53,10 @@ export default function EmployeesScreen(): JSX.Element {
       }
       setShots((prev) => [...prev, descriptor])
       setStatus(`Rasm olindi (${shots.length + 1}/${SHOTS_NEEDED})`)
+    } catch (err) {
+      setStatus(
+        `Yuz aniqlashda xatolik: ${err instanceof Error ? err.message : "noma'lum xato"}. Qayta urinib ko'ring.`
+      )
     } finally {
       setBusy(false)
     }
@@ -106,12 +110,13 @@ export default function EmployeesScreen(): JSX.Element {
             <video ref={videoRef} autoPlay muted playsInline className="camera-preview" />
             <canvas ref={canvasRef} style={{ display: 'none' }} />
             {cameraError && <p className="error">Kamera xatosi: {cameraError}</p>}
+            {!cameraError && !cameraReady && <p className="status">Kamera ulanmoqda...</p>}
             {!modelsReady && <p>Yuz-tanish modeli yuklanmoqda...</p>}
             <p className="status">{status}</p>
             <div className="form-actions">
               <button
                 type="button"
-                disabled={!modelsReady || busy || shots.length >= SHOTS_NEEDED}
+                disabled={!modelsReady || !cameraReady || busy || shots.length >= SHOTS_NEEDED}
                 onClick={captureShot}
               >
                 Rasmga olish ({shots.length}/{SHOTS_NEEDED})
