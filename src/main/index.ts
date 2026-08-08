@@ -1,11 +1,19 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
-import { createCustomer, deleteCustomer, listCustomers, updateCustomer, NewCustomer } from './db'
+import {
+  createEmployee,
+  deleteEmployee,
+  lastAttendanceType,
+  listAttendance,
+  listEmployees,
+  recordAttendance
+} from './db'
+import type { AttendanceType, NewEmployee } from '../shared/types'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1100,
-    height: 720,
+    height: 760,
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -31,12 +39,15 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('customers:list', (_e, search: string) => listCustomers(search))
-  ipcMain.handle('customers:create', (_e, data: NewCustomer) => createCustomer(data))
-  ipcMain.handle('customers:update', (_e, id: number, data: NewCustomer) =>
-    updateCustomer(id, data)
+  ipcMain.handle('employees:list', () => listEmployees())
+  ipcMain.handle('employees:create', (_e, data: NewEmployee) => createEmployee(data))
+  ipcMain.handle('employees:delete', (_e, id: number) => deleteEmployee(id))
+
+  ipcMain.handle('attendance:list', (_e, limit: number) => listAttendance(limit))
+  ipcMain.handle('attendance:lastType', (_e, employeeId: number) => lastAttendanceType(employeeId))
+  ipcMain.handle('attendance:record', (_e, employeeId: number, type: AttendanceType) =>
+    recordAttendance(employeeId, type)
   )
-  ipcMain.handle('customers:delete', (_e, id: number) => deleteCustomer(id))
 
   createWindow()
 

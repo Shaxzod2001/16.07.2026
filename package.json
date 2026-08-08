@@ -1,7 +1,7 @@
 {
-  "name": "crm-desktop",
+  "name": "attendance-desktop",
   "version": "0.1.0",
-  "description": "Cross-platform desktop CRM (mijozlarni boshqarish tizimi)",
+  "description": "Yuzni tanish orqali xodimlar davomatini qayd qiluvchi desktop dastur",
   "main": "./out/main/index.js",
   "author": "you",
   "private": true,
@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json"
   },
   "dependencies": {
+    "@vladmandic/face-api": "^1.7.15",
     "better-sqlite3": "^11.9.1"
   },
   "devDependencies": {

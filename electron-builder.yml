@@ -1,5 +1,5 @@
-appId: com.crmdesktop.app
-productName: CRM Desktop
+appId: com.attendancedesktop.app
+productName: Davomat Nazorati
 directories:
   buildResources: build
 files:
