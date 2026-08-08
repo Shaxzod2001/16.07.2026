@@ -15,24 +15,26 @@ export default function LogScreen(): JSX.Element {
       {logs.length === 0 ? (
         <p className="empty">Hozircha yozuvlar yo'q.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Xodim</th>
-              <th>Turi</th>
-              <th>Vaqt</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log) => (
-              <tr key={log.id}>
-                <td>{log.employee_name}</td>
-                <td>{log.type === 'in' ? 'Kirish' : 'Chiqish'}</td>
-                <td>{log.timestamp}</td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Xodim</th>
+                <th>Turi</th>
+                <th>Vaqt</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {logs.map((log) => (
+                <tr key={log.id}>
+                  <td>{log.employee_name}</td>
+                  <td>{log.type === 'in' ? 'Kirish' : 'Chiqish'}</td>
+                  <td>{log.timestamp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )

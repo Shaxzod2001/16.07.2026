@@ -41,30 +41,32 @@ export default function EmployeesScreen(): JSX.Element {
         />
       )}
 
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Ism</th>
-            <th>Qo'shilgan sana</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map((emp) => (
-            <tr key={emp.id}>
-              <td>{emp.photo && <img src={emp.photo} alt={emp.name} className="thumb" />}</td>
-              <td>{emp.name}</td>
-              <td>{emp.created_at}</td>
-              <td>
-                <button className="danger" onClick={() => handleDelete(emp.id)}>
-                  O'chirish
-                </button>
-              </td>
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Ism</th>
+              <th>Qo'shilgan sana</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {employees.map((emp) => (
+              <tr key={emp.id}>
+                <td>{emp.photo && <img src={emp.photo} alt={emp.name} className="thumb" />}</td>
+                <td>{emp.name}</td>
+                <td>{emp.created_at}</td>
+                <td>
+                  <button className="danger" onClick={() => handleDelete(emp.id)}>
+                    O'chirish
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
