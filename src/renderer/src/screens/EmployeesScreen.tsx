@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { Employee } from '../../../shared/types'
 import { useCamera } from '../hooks/useCamera'
 import { api } from '../lib/api'
+import { useLanguage } from '../lib/i18n'
 import { averageDescriptors, detectFaceDescriptor, loadFaceModels } from '../lib/face'
 
 const SHOTS_NEEDED = 3
 
 export default function EmployeesScreen(): JSX.Element {
+  const { t } = useLanguage()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [showForm, setShowForm] = useState(false)
 
@@ -19,7 +21,7 @@ export default function EmployeesScreen(): JSX.Element {
   }, [])
 
   async function handleDelete(id: number): Promise<void> {
-    if (!confirm("Ushbu xodimni o'chirishni tasdiqlaysizmi?")) return
+    if (!confirm(t('confirmDeleteEmployee'))) return
     await api.deleteEmployee(id)
     refresh()
   }
@@ -27,8 +29,8 @@ export default function EmployeesScreen(): JSX.Element {
   return (
     <div className="screen">
       <div className="screen-header">
-        <h2>Xodimlar ({employees.length})</h2>
-        <button onClick={() => setShowForm(true)}>+ Yangi xodim</button>
+        <h2>{t('employeesTitle', { count: employees.length })}</h2>
+        <button onClick={() => setShowForm(true)}>{t('newEmployee')}</button>
       </div>
 
       {showForm && (
@@ -46,8 +48,8 @@ export default function EmployeesScreen(): JSX.Element {
           <thead>
             <tr>
               <th></th>
-              <th>Ism</th>
-              <th>Qo'shilgan sana</th>
+              <th>{t('colName')}</th>
+              <th>{t('colJoined')}</th>
               <th></th>
             </tr>
           </thead>
@@ -59,7 +61,7 @@ export default function EmployeesScreen(): JSX.Element {
                 <td>{emp.created_at}</td>
                 <td>
                   <button className="danger" onClick={() => handleDelete(emp.id)}>
-                    O'chirish
+                    {t('delete')}
                   </button>
                 </td>
               </tr>
@@ -78,6 +80,7 @@ function EnrollModal({
   onClose: () => void
   onSaved: () => void
 }): JSX.Element {
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [shots, setShots] = useState<Float32Array[]>([])
   const [status, setStatus] = useState('')
@@ -93,18 +96,20 @@ function EnrollModal({
   async function captureShot(): Promise<void> {
     if (!videoRef.current || !modelsReady || !cameraReady) return
     setBusy(true)
-    setStatus('Yuz aniqlanmoqda...')
+    setStatus(t('detectingFace'))
     try {
       const descriptor = await detectFaceDescriptor(videoRef.current)
       if (!descriptor) {
-        setStatus("Yuz topilmadi. Kameraga qarab turing va qayta urinib ko'ring.")
+        setStatus(t('faceNotFound'))
         return
       }
       setShots((prev) => [...prev, descriptor])
-      setStatus(`Rasm olindi (${shots.length + 1}/${SHOTS_NEEDED})`)
+      setStatus(t('shotTaken', { count: shots.length + 1, needed: SHOTS_NEEDED }))
     } catch (err) {
       setStatus(
-        `Yuz aniqlashda xatolik: ${err instanceof Error ? err.message : "noma'lum xato"}. Qayta urinib ko'ring.`
+        t('faceDetectError', {
+          error: err instanceof Error ? err.message : t('unknownError')
+        })
       )
     } finally {
       setBusy(false)
@@ -135,18 +140,18 @@ function EnrollModal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Yangi xodim qo'shish</h3>
+        <h3>{t('newEmployeeModalTitle')}</h3>
         <input
-          placeholder="Xodim ismi"
+          placeholder={t('employeeNamePlaceholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
         <video ref={videoRef} autoPlay muted playsInline className="camera-preview" />
         <canvas ref={canvasRef} style={{ display: 'none' }} />
-        {cameraError && <p className="error">Kamera xatosi: {cameraError}</p>}
-        {!cameraError && !cameraReady && <p className="status">Kamera ulanmoqda...</p>}
-        {!modelsReady && <p>Yuz-tanish modeli yuklanmoqda...</p>}
+        {cameraError && <p className="error">{t('cameraError', { error: cameraError })}</p>}
+        {!cameraError && !cameraReady && <p className="status">{t('cameraConnecting')}</p>}
+        {!modelsReady && <p>{t('modelsLoading')}</p>}
         <p className="status">{status}</p>
         <div className="form-actions">
           <button
@@ -154,17 +159,17 @@ function EnrollModal({
             disabled={!modelsReady || !cameraReady || busy || shots.length >= SHOTS_NEEDED}
             onClick={captureShot}
           >
-            Rasmga olish ({shots.length}/{SHOTS_NEEDED})
+            {t('captureShot', { count: shots.length, needed: SHOTS_NEEDED })}
           </button>
           <button
             type="button"
             disabled={!name.trim() || shots.length < SHOTS_NEEDED || busy}
             onClick={saveEmployee}
           >
-            Saqlash
+            {t('save')}
           </button>
           <button type="button" className="secondary" onClick={onClose}>
-            Bekor qilish
+            {t('cancel')}
           </button>
         </div>
       </div>
