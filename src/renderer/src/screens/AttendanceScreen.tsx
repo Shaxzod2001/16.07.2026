@@ -6,6 +6,7 @@ import { detectFaceDescriptor, findBestMatch, loadFaceModels } from '../lib/face
 
 const SCAN_INTERVAL_MS = 1800
 const COOLDOWN_MS = 5000
+const CONFIRM_TIMEOUT_MS = 5000
 
 interface ResultState {
   kind: 'success' | 'error'
@@ -21,6 +22,7 @@ export default function AttendanceScreen(): JSX.Element {
   const [confirmEmployee, setConfirmEmployee] = useState<Employee | null>(null)
   const cooldownRef = useRef<number | null>(null)
   const busyRef = useRef(false)
+  const confirmHandledRef = useRef(false)
 
   useEffect(() => {
     loadFaceModels().then(() => setModelsReady(true))
@@ -40,6 +42,16 @@ export default function AttendanceScreen(): JSX.Element {
     return () => window.clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modelsReady, cameraReady, scanning, confirmEmployee])
+
+  useEffect(() => {
+    if (!confirmEmployee) return
+    confirmHandledRef.current = false
+    const timer = window.setTimeout(() => {
+      void confirmCheckout(false)
+    }, CONFIRM_TIMEOUT_MS)
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmEmployee])
 
   function pauseWithCooldown(): void {
     setScanning(false)
@@ -82,7 +94,8 @@ export default function AttendanceScreen(): JSX.Element {
   }
 
   async function confirmCheckout(shouldCheckout: boolean): Promise<void> {
-    if (!confirmEmployee || confirmBusy) return
+    if (!confirmEmployee || confirmHandledRef.current) return
+    confirmHandledRef.current = true
     setConfirmBusy(true)
     try {
       if (shouldCheckout) {
@@ -96,9 +109,9 @@ export default function AttendanceScreen(): JSX.Element {
         setResult(null)
       }
       setConfirmEmployee(null)
-      pauseWithCooldown()
     } finally {
       setConfirmBusy(false)
+      pauseWithCooldown()
     }
   }
 
@@ -116,27 +129,29 @@ export default function AttendanceScreen(): JSX.Element {
         </p>
       )}
 
+      {result && <p className={result.kind === 'success' ? 'success' : 'error'}>{result.message}</p>}
+
       {confirmEmployee && (
-        <div className="confirm-box">
-          <p>
-            <strong>{confirmEmployee.name}</strong>, siz hozir ishdasiz. Chiqishni tasdiqlaysizmi?
-          </p>
-          <div className="punch-actions">
-            <button disabled={confirmBusy} onClick={() => confirmCheckout(true)}>
-              Ha, chiqaman
-            </button>
-            <button
-              className="secondary"
-              disabled={confirmBusy}
-              onClick={() => confirmCheckout(false)}
-            >
-              Yo'q, orqaga
-            </button>
+        <div className="modal-backdrop">
+          <div className="modal confirm-modal">
+            <p>
+              <strong>{confirmEmployee.name}</strong>, siz hozir ishdasiz. Chiqishni tasdiqlaysizmi?
+            </p>
+            <div className="punch-actions">
+              <button disabled={confirmBusy} onClick={() => confirmCheckout(true)}>
+                Ha, chiqaman
+              </button>
+              <button
+                className="secondary"
+                disabled={confirmBusy}
+                onClick={() => confirmCheckout(false)}
+              >
+                Yo'q, orqaga
+              </button>
+            </div>
           </div>
         </div>
       )}
-
-      {result && <p className={result.kind === 'success' ? 'success' : 'error'}>{result.message}</p>}
     </div>
   )
 }

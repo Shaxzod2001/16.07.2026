@@ -101,30 +101,32 @@ export default function ReportsScreen(): JSX.Element {
             Excel'ga yuklash
           </button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Ism</th>
-              <th>Holati</th>
-              <th>Kelgan vaqti</th>
-              <th>Ketgan vaqti</th>
-              <th>Ish soati</th>
-              <th>Kechikish</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dailyRows.map((r) => (
-              <tr key={r.employee.id}>
-                <td>{r.employee.name}</td>
-                <td>{r.present ? 'Keldi' : 'Kelmadi'}</td>
-                <td>{r.firstIn ? r.firstIn.slice(11, 16) : '—'}</td>
-                <td>{r.stillIn ? 'Hali ishda' : r.lastOut ? r.lastOut.slice(11, 16) : '—'}</td>
-                <td>{r.present ? fmtHours(r.hoursWorked) : '—'}</td>
-                <td className={r.late ? 'error' : ''}>{r.late ? `${r.lateMinutes} daq.` : '—'}</td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Ism</th>
+                <th>Holati</th>
+                <th>Kelgan vaqti</th>
+                <th>Ketgan vaqti</th>
+                <th>Ish soati</th>
+                <th>Kechikish</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {dailyRows.map((r) => (
+                <tr key={r.employee.id}>
+                  <td>{r.employee.name}</td>
+                  <td>{r.present ? 'Keldi' : 'Kelmadi'}</td>
+                  <td>{r.firstIn ? r.firstIn.slice(11, 16) : '—'}</td>
+                  <td>{r.stillIn ? 'Hali ishda' : r.lastOut ? r.lastOut.slice(11, 16) : '—'}</td>
+                  <td>{r.present ? fmtHours(r.hoursWorked) : '—'}</td>
+                  <td className={r.late ? 'error' : ''}>{r.late ? `${r.lateMinutes} daq.` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="report-section">
@@ -151,26 +153,28 @@ export default function ReportsScreen(): JSX.Element {
             Excel'ga yuklash
           </button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Ism</th>
-              <th>Kelgan kunlar</th>
-              <th>Umumiy soat</th>
-              <th>Kechikkan kunlar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {periodRows.map((r) => (
-              <tr key={r.employee.id}>
-                <td>{r.employee.name}</td>
-                <td>{r.daysPresent}</td>
-                <td>{fmtHours(r.totalHours)}</td>
-                <td>{r.lateDays > 0 ? r.lateDays : '—'}</td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Ism</th>
+                <th>Kelgan kunlar</th>
+                <th>Umumiy soat</th>
+                <th>Kechikkan kunlar</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {periodRows.map((r) => (
+                <tr key={r.employee.id}>
+                  <td>{r.employee.name}</td>
+                  <td>{r.daysPresent}</td>
+                  <td>{fmtHours(r.totalHours)}</td>
+                  <td>{r.lateDays > 0 ? r.lateDays : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="report-section">
@@ -200,26 +204,28 @@ export default function ReportsScreen(): JSX.Element {
         {lateRows.length === 0 ? (
           <p className="empty">Bu davrda kechikishlar yo'q.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Ism</th>
-                <th>Sana</th>
-                <th>Kelgan vaqti</th>
-                <th>Kechikish</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lateRows.map((r, i) => (
-                <tr key={`${r.employeeId}-${r.date}-${i}`}>
-                  <td>{r.employeeName}</td>
-                  <td>{r.date}</td>
-                  <td>{r.arrivalTime}</td>
-                  <td className="error">{r.lateMinutes} daq.</td>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ism</th>
+                  <th>Sana</th>
+                  <th>Kelgan vaqti</th>
+                  <th>Kechikish</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {lateRows.map((r, i) => (
+                  <tr key={`${r.employeeId}-${r.date}-${i}`}>
+                    <td>{r.employeeName}</td>
+                    <td>{r.date}</td>
+                    <td>{r.arrivalTime}</td>
+                    <td className="error">{r.lateMinutes} daq.</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
