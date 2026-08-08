@@ -1,0 +1,21 @@
+appId: com.attendancedesktop.app
+productName: Davomat Nazorati
+directories:
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Office
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
